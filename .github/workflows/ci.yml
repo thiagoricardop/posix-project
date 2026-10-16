@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tp1:
+    name: TP1 - IPC vehicle simulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tp1-ipc-vehicle-simulator
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Build
+        run: make
+
+      - name: Static analysis
+        run: >
+          cppcheck --enable=warning,portability --error-exitcode=1
+          --suppress=missingIncludeSystem -I include src
+
+      - name: End-to-end test
+        run: make test
+
+  tp2:
+    name: TP2 - GPIO vehicle controller (simulated GPIO)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tp2-gpio-vehicle-controller
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Build (simulated GPIO)
+        run: make SIM=1
+
+      - name: Static analysis
+        run: >
+          cppcheck --enable=warning,portability --error-exitcode=1
+          --suppress=missingIncludeSystem -I include -I sim src sim tools
+
+      - name: End-to-end test
+        run: make test
